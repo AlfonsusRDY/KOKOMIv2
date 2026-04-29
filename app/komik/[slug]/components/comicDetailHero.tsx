@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLocale } from "@/app/components/localeProvider";
+import { useFavorites } from "@/hooks/useComicStorage";
 
 interface Props {
   title: string;
@@ -17,10 +18,21 @@ interface Props {
 }
 
 export default function ComicDetailHero({
-  title, thumbnail, status, author, type, genres, sinopsis, chapterCount, readers,
+  title, thumbnail, status, author, type, genres, sinopsis, chapterCount, readers, slug
 }: Props) {
   const { t } = useLocale();
   const isOngoing = status.toLowerCase().includes("ongoing") || status.toLowerCase().includes("berlangsung");
+  
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const isFav = isFavorite(slug);
+
+  const toggleFav = () => {
+    if (isFav) {
+      removeFavorite(slug);
+    } else {
+      addFavorite({ slug, title, thumbnail, type: type || 'Unknown' });
+    }
+  };
 
   return (
     <>
@@ -91,8 +103,8 @@ export default function ComicDetailHero({
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="flex flex-wrap gap-6">
+          {/* Stats & Actions */}
+          <div className="flex flex-wrap items-center gap-6">
             <div>
               <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 {chapterCount.toLocaleString()}
@@ -105,6 +117,19 @@ export default function ComicDetailHero({
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t.readers}</p>
               </div>
             )}
+            <div className="ml-auto sm:ml-0">
+              <button
+                onClick={toggleFav}
+                className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                style={{
+                  backgroundColor: isFav ? 'rgba(239,68,68,0.1)' : 'var(--bg-raised)',
+                  color: isFav ? '#ef4444' : 'var(--text-primary)',
+                  border: `1px solid ${isFav ? 'rgba(239,68,68,0.3)' : 'var(--border)'}`,
+                }}
+              >
+                {isFav ? '♥ Favorited' : '♡ Add to Favorites'}
+              </button>
+            </div>
           </div>
         </div>
       </section>

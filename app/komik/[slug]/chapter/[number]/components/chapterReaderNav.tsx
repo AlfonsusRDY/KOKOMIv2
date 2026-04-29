@@ -1,18 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { useLocale } from "@/app/components/localeProvider";
+import { useHistory } from "@/hooks/useComicStorage";
+import DownloadButton from "./downloadButton";
+import type { ChapterImage } from "@/lib/api";
 
 interface Props {
   slug: string;
   number: string;
   comicTitle: string;
+  thumbnail: string | null;
   prevChapter: string | null;
   nextChapter: string | null;
+  images: ChapterImage[];
 }
 
-export default function ChapterReaderNav({ slug, number, comicTitle, prevChapter, nextChapter }: Props) {
+export default function ChapterReaderNav({ slug, number, comicTitle, thumbnail, prevChapter, nextChapter, images }: Props) {
   const { t } = useLocale();
+  const { addToHistory } = useHistory();
+
+  useEffect(() => {
+    addToHistory({
+      slug,
+      title: comicTitle,
+      thumbnail: thumbnail || '', // Fallback empty string if not found
+      lastChapter: number
+    });
+  }, [slug, comicTitle, thumbnail, number]);
   return (
     <div
       className="sticky top-0 z-50 border-b"
@@ -29,7 +45,8 @@ export default function ChapterReaderNav({ slug, number, comicTitle, prevChapter
         <span className="text-sm font-semibold flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
           Ch. {number}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+          <DownloadButton comicTitle={comicTitle} chapterNumber={number} images={images} />
           {prevChapter && (
             <Link
               href={`/komik/${slug}/chapter/${prevChapter}`}

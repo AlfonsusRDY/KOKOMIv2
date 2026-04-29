@@ -95,10 +95,24 @@ export interface BacaChapterResponse {
   };
 }
 
+export interface SearchItem {
+  title: string;
+  altTitle: string | null;
+  slug: string;
+  href: string;
+  thumbnail: string;
+  type: string;
+  genre: string;
+  description: string;
+}
+
 export interface SearchResult {
-  items: KomikItem[];
-  query: string;
-  totalResults: number;
+  status: boolean;
+  message: string;
+  keyword: string;
+  url: string;
+  total: number;
+  data: SearchItem[];
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
