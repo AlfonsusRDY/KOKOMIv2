@@ -13,10 +13,16 @@ export default async function ChapterReaderPage({ params }: PageProps) {
 
   let chapter = null;
   let comicTitle = slug;
+  let thumbnail = null;
 
   try {
-    chapter = await getChapterImages(slug, number);
+    const [chapterData, detailData] = await Promise.all([
+      getChapterImages(slug, number),
+      getComicDetail(slug).catch(() => null)
+    ]);
+    chapter = chapterData;
     comicTitle = chapter.mangaInfo?.title ?? slug;
+    thumbnail = detailData?.thumbnail ?? null;
   } catch {
     notFound();
   }
@@ -31,8 +37,10 @@ export default async function ChapterReaderPage({ params }: PageProps) {
         slug={slug}
         number={number}
         comicTitle={comicTitle}
+        thumbnail={thumbnail}
         prevChapter={prev?.chapterNumber ?? null}
         nextChapter={next?.chapterNumber ?? null}
+        images={chapter.images ?? []}
       />
 
       {/* Chapter images */}

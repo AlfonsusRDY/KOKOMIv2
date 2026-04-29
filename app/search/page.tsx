@@ -1,19 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "../components/localeProvider";
 import { searchComics } from "@/lib/api";
-import type { KomikItem } from "@/lib/api";
+import type { SearchItem } from "@/lib/api";
 
-export default function SearchPage() {
+function SearchPageContent() {
   const { t } = useLocale();
-  const [query, setQuery] = useState("");
-  const [inputValue, setInputValue] = useState("");
-  const [results, setResults] = useState<KomikItem[] | null>(null);
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+
+  const [query, setQuery] = useState(initialQuery);
+  const [inputValue, setInputValue] = useState(initialQuery);
+  const [results, setResults] = useState<SearchItem[] | null>(null);
   const [totalResults, setTotalResults] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setLoading(true);
+      setError(null);
+      setResults(null);
+      searchComics(initialQuery).then(data => {
+        setResults(data.data || []);
+        setTotalResults(data.total || 0);
+      }).catch(() => {
+        setError("Failed to fetch search results. Please try again.");
+      }).finally(() => {
+        setLoading(false);
+      });
+    }
+  }, [initialQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +45,8 @@ export default function SearchPage() {
     setResults(null);
     try {
       const data = await searchComics(q);
-      setResults(data.items);
-      setTotalResults(data.totalResults ?? data.items.length);
+      setResults(data.data || []);
+      setTotalResults(data.total || 0);
     } catch {
       setError("Failed to fetch search results. Please try again.");
     } finally {
@@ -124,8 +144,8 @@ export default function SearchPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {results.map((comic) => (
             <Link
-              key={comic.mangaSlug}
-              href={`/komik/${comic.mangaSlug}`}
+              key={comic.slug}
+              href={`/komik/${comic.slug}`}
               className="group flex gap-4 p-4 rounded-2xl transition-all"
               style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
               onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
@@ -145,9 +165,9 @@ export default function SearchPage() {
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                     style={{ backgroundColor: 'var(--bg-raised)', color: 'var(--accent)' }}>
-                    {comic.latestChapter}
+                    {comic.type}
                   </span>
-                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{comic.readers}</span>
+                  <span className="text-xs line-clamp-1" style={{ color: 'var(--text-secondary)' }}>{comic.description}</span>
                 </div>
               </div>
             </Link>
@@ -155,5 +175,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center">Loading search...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

@@ -12,7 +12,21 @@ export default function NavLinks() {
         className="text-sm font-medium transition-colors hover:opacity-80"
         style={{ color: 'var(--text-secondary)' }}
       >
-        {t.navHome}
+        {t.navHome || "Home"}
+      </Link>
+      <Link
+        href="/favorites"
+        className="text-sm font-medium transition-colors hover:opacity-80"
+        style={{ color: 'var(--text-secondary)' }}
+      >
+        Favorites
+      </Link>
+      <Link
+        href="/history"
+        className="text-sm font-medium transition-colors hover:opacity-80"
+        style={{ color: 'var(--text-secondary)' }}
+      >
+        History
       </Link>
       <Link
         href="/search"
