@@ -1,19 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "../components/localeProvider";
 import { searchComics } from "@/lib/api";
 import type { SearchItem } from "@/lib/api";
 
-export default function SearchPage() {
+function SearchPageContent() {
   const { t } = useLocale();
-  const [query, setQuery] = useState("");
-  const [inputValue, setInputValue] = useState("");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+
+  const [query, setQuery] = useState(initialQuery);
+  const [inputValue, setInputValue] = useState(initialQuery);
   const [results, setResults] = useState<SearchItem[] | null>(null);
   const [totalResults, setTotalResults] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setLoading(true);
+      setError(null);
+      setResults(null);
+      searchComics(initialQuery).then(data => {
+        setResults(data.data || []);
+        setTotalResults(data.total || 0);
+      }).catch(() => {
+        setError("Failed to fetch search results. Please try again.");
+      }).finally(() => {
+        setLoading(false);
+      });
+    }
+  }, [initialQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,5 +175,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center">Loading search...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
