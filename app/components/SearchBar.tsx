@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useLocale } from "./localeProvider";
 
 export default function SearchBar() {
   const router = useRouter();
+  const { t } = useLocale();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -22,21 +23,34 @@ export default function SearchBar() {
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 max-w-xl mx-auto">
       <div className="relative flex-1">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+        <svg
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+          style={{ color: 'var(--text-secondary)' }}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+        </svg>
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cari judul komik..."
-          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-sm"
+          placeholder={t.searchPlaceholder}
+          className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition focus:outline-none"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-primary)',
+          }}
         />
       </div>
       <button
         type="submit"
-        className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition text-sm whitespace-nowrap"
+        className="px-5 py-3 text-white font-semibold rounded-xl text-sm whitespace-nowrap transition-opacity hover:opacity-90"
+        style={{ backgroundColor: 'var(--accent)' }}
       >
-        Cari
+        {t.search}
       </button>
     </form>
   );

@@ -1,5 +1,0 @@
-{
-  "/komik/[slug]/chapter/[number]/page": "app/komik/[slug]/chapter/[number]/page.js",
-  "/komik/[slug]/page": "app/komik/[slug]/page.js",
-  "/page": "app/page.js"
-}
