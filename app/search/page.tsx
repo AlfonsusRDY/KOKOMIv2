@@ -1,117 +1,153 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useLocale } from "../components/localeProvider";
 import { searchComics } from "@/lib/api";
+import type { KomikItem } from "@/lib/api";
 
-interface PageProps {
-  searchParams: { q?: string };
-}
+export default function SearchPage() {
+  const { t } = useLocale();
+  const [query, setQuery] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [results, setResults] = useState<KomikItem[] | null>(null);
+  const [totalResults, setTotalResults] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function SearchPage({ searchParams }: PageProps) {
-  const query = searchParams.q?.trim() ?? "";
-  let results = null;
-  let error = null;
-
-  if (query) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = inputValue.trim();
+    if (!q) return;
+    setQuery(q);
+    setLoading(true);
+    setError(null);
+    setResults(null);
     try {
-      results = await searchComics(query);
-    } catch (e) {
-      error = "Gagal mengambil hasil pencarian. Coba lagi.";
+      const data = await searchComics(q);
+      setResults(data.items);
+      setTotalResults(data.totalResults ?? data.items.length);
+    } catch {
+      setError("Failed to fetch search results. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Search heading */}
+      {/* Heading */}
       <div className="mb-8">
-        <Link href="/" className="text-sm text-blue-500 hover:underline mb-4 inline-block">
-          ← Kembali
+        <Link href="/" className="text-sm mb-4 inline-block transition-colors hover:opacity-80"
+          style={{ color: 'var(--accent)' }}>
+          &larr; {t.back}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
           {query ? (
             <>
-              Hasil pencarian:{" "}
-              <span className="text-blue-500">&quot;{query}&quot;</span>
+              {t.searchResults}{" "}
+              <span style={{ color: 'var(--accent)' }}>&quot;{query}&quot;</span>
               {results && (
-                <span className="text-sm font-normal text-gray-400 ml-2">
-                  ({results.totalResults ?? results.items.length} hasil)
+                <span className="text-sm font-normal ml-2" style={{ color: 'var(--text-secondary)' }}>
+                  ({totalResults} {t.results})
                 </span>
               )}
             </>
           ) : (
-            "Cari Komik"
+            t.searchComics
           )}
         </h1>
       </div>
 
       {/* Search form */}
-      <form method="GET" className="flex gap-2 mb-10">
+      <form onSubmit={handleSubmit} className="flex gap-2 mb-10">
         <input
           type="text"
-          name="q"
-          defaultValue={query}
-          placeholder="Cari judul komik..."
+          value={inputValue}
+          onChange={e => setInputValue(e.target.value)}
+          placeholder={t.searchPlaceholder}
           autoFocus
-          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
+          className="flex-1 px-4 py-3 rounded-xl text-sm transition focus:outline-none"
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-primary)',
+          }}
         />
         <button
           type="submit"
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition text-sm"
+          className="px-6 py-3 text-white font-semibold rounded-xl text-sm transition-opacity hover:opacity-90"
+          style={{ backgroundColor: 'var(--accent)' }}
         >
-          Cari
+          {t.search}
         </button>
       </form>
 
       {/* Error */}
       {error && (
-        <div className="py-10 text-center text-red-500 text-sm">{error}</div>
+        <div className="py-10 text-center text-sm" style={{ color: 'var(--warning)' }}>{error}</div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex gap-4 p-4 rounded-2xl animate-pulse"
+              style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              <div className="w-16 h-22 rounded-xl flex-shrink-0" style={{ backgroundColor: 'var(--bg-raised)' }} />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--bg-raised)' }} />
+                <div className="h-3 rounded w-1/2" style={{ backgroundColor: 'var(--bg-raised)' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* No query */}
-      {!query && !error && (
-        <div className="py-20 text-center text-gray-400">
-          <p className="text-4xl mb-3">🔍</p>
-          <p>Ketik judul komik di atas untuk mencari.</p>
+      {!query && !error && !loading && (
+        <div className="py-20 text-center" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-4xl mb-3 opacity-20">&#x2315;</p>
+          <p>{t.searchPrompt}</p>
         </div>
       )}
 
       {/* No results */}
-      {query && results && results.items.length === 0 && (
-        <div className="py-20 text-center text-gray-400">
-          <p className="text-4xl mb-3">😕</p>
-          <p>Tidak ada hasil untuk &quot;{query}&quot;.</p>
+      {query && results && results.length === 0 && !loading && (
+        <div className="py-20 text-center" style={{ color: 'var(--text-secondary)' }}>
+          <p>{t.noResults} &quot;{query}&quot;.</p>
         </div>
       )}
 
-      {/* Results grid */}
-      {results && results.items.length > 0 && (
+      {/* Results */}
+      {results && results.length > 0 && !loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {results.items.map((comic) => (
+          {results.map((comic) => (
             <Link
               key={comic.mangaSlug}
               href={`/komik/${comic.mangaSlug}`}
-              className="group flex gap-4 p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-600 shadow-sm hover:shadow-md transition-all"
+              className="group flex gap-4 p-4 rounded-2xl transition-all"
+              style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             >
-              {/* Cover */}
-              <div className="flex-shrink-0 w-16 h-22 rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700">
+              <div className="flex-shrink-0 w-16 rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--bg-raised)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={comic.thumbnail}
-                  alt={comic.title}
-                  className="w-16 h-full object-cover"
-                />
+                <img src={comic.thumbnail} alt={comic.title} className="w-16 h-full object-cover" />
               </div>
-              {/* Info */}
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-sm text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                <h2 className="font-bold text-sm line-clamp-2 transition-colors" style={{ color: 'var(--text-primary)' }}>
                   {comic.title}
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
                   {comic.genre}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                    style={{ backgroundColor: 'var(--bg-raised)', color: 'var(--accent)' }}>
                     {comic.latestChapter}
                   </span>
-                  <span className="text-xs text-gray-400">{comic.readers}</span>
+                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{comic.readers}</span>
                 </div>
               </div>
             </Link>
