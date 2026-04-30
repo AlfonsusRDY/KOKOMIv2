@@ -144,6 +144,29 @@ export async function getChapterImages(slug: string, chapter: string) {
   return apiFetch<BacaChapterResponse>(`/baca-chapter/${slug}/${chapter}`, 3600); // 1 hr — static
 }
 
+export interface PustakaItem {
+  title: string;
+  thumbnail: string;
+  type: string;
+  genre: string;
+  url: string;
+  detailUrl: string;
+  description: string;
+  stats: string;
+  firstChapter: { title: string; url: string };
+  latestChapter: { title: string; url: string };
+}
+
+export interface PustakaResponse {
+  page: number;
+  type: string;
+  results: PustakaItem[];
+}
+
+export async function getPustaka(page: number = 1) {
+  return apiFetch<PustakaResponse>(`/pustaka/page/${page}`, 60); // 1 min cache
+}
+
 export async function searchComics(query: string) {
   return apiFetch<SearchResult>(`/search?q=${encodeURIComponent(query)}`, 120); // 2 min
 }

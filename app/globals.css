@@ -8,33 +8,34 @@
 @tailwind utilities;
 
 :root {
-  /* Solid color palette - Dark Mode (primary) */
-  --bg-primary:      #141821;
-  --bg-surface:      #1C2030;
-  --bg-raised:       #242938;
-  --border:          #2E3446;
-  --text-primary:    #E8E9ED;
-  --text-secondary:  #8B8FA3;
-  --accent:          #2D9CDB;
-  --accent-hover:    #2486BE;
-  --success:         #4CAF7D;
-  --warning:         #D4915E;
+  /* Calm Sage & Earth palette - Dark Mode (primary) */
+  --bg-primary:      #181917;
+  --bg-surface:      #1F211E;
+  --bg-raised:       #292B28;
+  --border:          #383C36;
+  --text-primary:    #E2E4DE;
+  --text-secondary:  #92988E;
+  --accent:          #829A7F; /* Soft Sage Green */
+  --accent-hover:    #697E66;
+  --success:         #668668;
+  --warning:         #BCA178;
 
   scroll-behavior: smooth;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --bg-primary:      #F5F5F7;
+    /* Calm Sage palette - Light Mode */
+    --bg-primary:      #F7F8F6;
     --bg-surface:      #FFFFFF;
-    --bg-raised:       #EEEEF0;
-    --border:          #D8D8DC;
-    --text-primary:    #1A1A2E;
-    --text-secondary:  #6B6B80;
-    --accent:          #2D7ABF;
-    --accent-hover:    #1E6BAD;
-    --success:         #2E8B57;
-    --warning:         #B5541A;
+    --bg-raised:       #EEF0EC;
+    --border:          #D8DCD4;
+    --text-primary:    #2B2D29;
+    --text-secondary:  #6B7067;
+    --accent:          #5F755C;
+    --accent-hover:    #495C46;
+    --success:         #476649;
+    --warning:         #9E7B4E;
   }
 }
 
@@ -89,24 +90,28 @@ a:focus-visible {
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .line-clamp-4 {
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

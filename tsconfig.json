@@ -31,17 +31,6 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
-    "node_modules",
-    "komiku.service.ts",
-    "komiku.types.ts",
-    "useKomiku.ts",
-    "ChapterList.tsx",
-    "ComicDetailContent.tsx",
-    "ComicHeader.tsx",
-    "ComicInfo.tsx",
-    "KomikuComponents.tsx",
-    "SimilarComics.tsx",
-    "app-detail-page.tsx",
-    "app-layout.tsx"
+    "node_modules"
   ]
 }

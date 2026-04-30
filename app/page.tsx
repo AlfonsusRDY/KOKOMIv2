@@ -1,25 +1,29 @@
 // ISR: cache home page for 5 minutes
 export const revalidate = 300;
 
+import * as React from "react";
 import { Suspense } from "react";
-import { getPopularComics, getLatestComics } from "@/lib/api";
-import type { KomikItem, TerbaruItem } from "@/lib/api";
+import { getPopularComics, getPustaka } from "@/lib/api";
+import type { KomikItem } from "@/lib/api";
 import HeroSection from "./components/heroSection";
 import SectionHeading from "./components/sectionHeading";
-import { LatestCard, PopularRow } from "./components/comicCards";
+import { PopularRow } from "./components/comicCards";
+import LatestClient from "./latest/LatestClient";
 
 // ── Skeleton components ───────────────────────────────────────────────────────
 
 function LatestCardSkeleton() {
   return (
-    <div className="flex gap-4 p-4 rounded-xl animate-pulse"
+    <div className="flex flex-col rounded-xl overflow-hidden animate-pulse"
       style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-      <div className="flex-shrink-0 w-16 h-20 sm:w-20 sm:h-28 rounded-lg"
-        style={{ backgroundColor: 'var(--bg-raised)' }} />
-      <div className="flex-1 space-y-2 py-1">
-        <div className="h-2.5 rounded w-1/4" style={{ backgroundColor: 'var(--bg-raised)' }} />
+      <div className="w-full aspect-[3/4]" style={{ backgroundColor: 'var(--bg-raised)' }} />
+      <div className="p-3 space-y-3">
         <div className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--bg-raised)' }} />
         <div className="h-3 rounded w-1/2" style={{ backgroundColor: 'var(--bg-raised)' }} />
+        <div className="flex justify-between items-center mt-2">
+          <div className="h-5 rounded w-16" style={{ backgroundColor: 'var(--bg-raised)' }} />
+          <div className="h-3 rounded w-10" style={{ backgroundColor: 'var(--bg-raised)' }} />
+        </div>
       </div>
     </div>
   );
@@ -42,17 +46,19 @@ function PopularRowSkeleton() {
 // ── Async data sections ───────────────────────────────────────────────────────
 
 async function LatestSection() {
-  const data = await getLatestComics().catch(() => [] as TerbaruItem[]);
-  if (!data.length) return (
+  const [data1, data2] = await Promise.all([
+    getPustaka(1).catch(() => null),
+    getPustaka(2).catch(() => null)
+  ]);
+  const items = [...(data1?.results || []), ...(data2?.results || [])];
+  if (!items.length) return (
     <div className="py-10 text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
       Failed to load data.
     </div>
   );
   return (
-    <div className="flex flex-col gap-3">
-      {data.map((comic) => (
-        <LatestCard key={comic.mangaSlug} comic={comic} />
-      ))}
+    <div className="flex flex-col gap-4">
+      <LatestClient initialData={items} hideHeader />
     </div>
   );
 }
@@ -99,8 +105,8 @@ export default function HomePage() {
           <section className="flex-1 min-w-0">
             <SectionHeading titleKey="latestUpdates" subtitleKey="latestFirst" />
             <Suspense fallback={
-              <div className="flex flex-col gap-3">
-                {Array.from({ length: 6 }).map((_, i) => <LatestCardSkeleton key={i} />)}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4">
+                {Array.from({ length: 20 }).map((_, i) => <LatestCardSkeleton key={i} />)}
               </div>
             }>
               <LatestSection />

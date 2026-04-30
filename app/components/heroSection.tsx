@@ -31,6 +31,30 @@ export default function HeroSection() {
           {t.heroSubtitle}
         </p>
         <SearchBar />
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {["Manga", "Manhwa", "Manhua", "Action", "Romance", "Fantasy", "Comedy"].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => window.location.href = `/search?q=${cat}`}
+              className="px-3 py-1 text-xs font-medium rounded-full transition-colors border"
+              style={{
+                backgroundColor: 'var(--bg-raised)',
+                color: 'var(--text-secondary)',
+                borderColor: 'var(--border)'
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
