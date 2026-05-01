@@ -103,13 +103,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <HeroSection />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Latest Updates */}
           <section className="flex-1 min-w-0">
             <SectionHeading titleKey="latestUpdates" subtitleKey="latestFirst" />
             <Suspense fallback={
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {Array.from({ length: 20 }).map((_, i) => <LatestCardSkeleton key={i} />)}
               </div>
             }>

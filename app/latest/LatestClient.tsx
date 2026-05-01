@@ -158,7 +158,7 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
   };
 
   return (
-    <div className={hideHeader ? "w-full" : "max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10"}>
+    <div className={hideHeader ? "w-full" : "max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 py-10"}>
       {!hideHeader && (
         <div className="mb-8 flex justify-between items-end">
           <div>
@@ -180,7 +180,7 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
       )}
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {Array.from({ length: 20 }).map((_, i) => (
             <div key={i} className="flex flex-col rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
               <div className="w-full aspect-[3/4] skeleton" />
@@ -192,7 +192,7 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {items.slice(0, 20).map((comic: PustakaItem) => {
             const slug = comic.detailUrl.replace('/detail-komik/', '');
             const isColored = comic.stats.toLowerCase().includes("berwarna");
