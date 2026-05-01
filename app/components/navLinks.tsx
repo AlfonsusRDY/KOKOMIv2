@@ -1,50 +1,47 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLocale } from "./localeProvider";
 
 export default function NavLinks() {
   const { t } = useLocale();
+  const pathname = usePathname();
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
   return (
     <>
       <Link
         href="/"
-        className="text-sm font-medium transition-colors hover:opacity-80"
-        style={{ color: 'var(--text-secondary)' }}
+        className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150"
+        style={{
+          color: isActive("/") ? 'var(--text-primary)' : 'var(--text-secondary)',
+          background: isActive("/") ? 'var(--bg-raised)' : 'transparent',
+        }}
       >
         {t.navHome || "Home"}
       </Link>
       <Link
         href="/favorites"
-        className="text-sm font-medium transition-colors hover:opacity-80"
-        style={{ color: 'var(--text-secondary)' }}
+        className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150"
+        style={{
+          color: isActive("/favorites") ? 'var(--text-primary)' : 'var(--text-secondary)',
+          background: isActive("/favorites") ? 'var(--bg-raised)' : 'transparent',
+        }}
       >
         Favorites
       </Link>
       <Link
         href="/history"
-        className="text-sm font-medium transition-colors hover:opacity-80"
-        style={{ color: 'var(--text-secondary)' }}
+        className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150"
+        style={{
+          color: isActive("/history") ? 'var(--text-primary)' : 'var(--text-secondary)',
+          background: isActive("/history") ? 'var(--bg-raised)' : 'transparent',
+        }}
       >
         History
-      </Link>
-      <Link
-        href="/search"
-        className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
-        style={{
-          backgroundColor: 'var(--bg-raised)',
-          color: 'var(--text-secondary)',
-        }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
-          (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-          (e.currentTarget as HTMLElement).style.borderColor = 'transparent';
-        }}
-      >
-        {t.navSearch}
       </Link>
     </>
   );

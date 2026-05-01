@@ -31,7 +31,7 @@ export default async function ChapterReaderPage({ params }: PageProps) {
   const next = chapter.navigation?.nextChapter;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0D0F14', color: '#E8E9ED' }}>
+    <div className="min-h-screen" style={{ background: '#0D0D0F', color: 'var(--text-primary)' }}>
       {/* Sticky top bar */}
       <ChapterReaderNav
         slug={slug}
@@ -44,37 +44,42 @@ export default async function ChapterReaderPage({ params }: PageProps) {
       />
 
       {/* Chapter images */}
-      <div className="max-w-2xl mx-auto px-0 sm:px-2 py-6">
+      <div className="max-w-2xl mx-auto px-0 sm:px-3 py-6">
         <ChapterImages images={chapter.images ?? []} />
 
-        {/* Bottom nav */}
+        {/* Bottom navigation */}
         <div
-          className="flex items-center justify-between mt-8 pt-6 mx-4 sm:mx-0"
-          style={{ borderTop: '1px solid var(--border)' }}
+          className="flex items-center justify-between mt-10 pt-6 mx-4 sm:mx-0 gap-3"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           {prev ? (
             <Link
               href={`/komik/${slug}/chapter/${prev.chapterNumber}`}
-              className="px-5 py-2.5 text-sm font-semibold rounded-xl transition-opacity hover:opacity-80"
-              style={{ backgroundColor: 'var(--bg-raised)', color: 'var(--text-primary)' }}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-150 active:scale-95"
+              style={{ background: 'var(--bg-raised)', color: 'var(--text-primary)' }}
             >
-              &larr; Ch. {prev.chapterNumber}
+              ← Ch. {prev.chapterNumber}
             </Link>
           ) : <div />}
+
           <Link
             href={`/komik/${slug}`}
-            className="px-4 py-2.5 text-xs rounded-xl transition-opacity hover:opacity-80"
-            style={{ backgroundColor: 'var(--bg-raised)', color: 'var(--text-secondary)' }}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium rounded-xl transition-all duration-150"
+            style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}
           >
-            &#9776; List
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            List
           </Link>
+
           {next ? (
             <Link
               href={`/komik/${slug}/chapter/${next.chapterNumber}`}
-              className="px-5 py-2.5 text-sm font-semibold rounded-xl transition-opacity hover:opacity-80"
-              style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-150 active:scale-95"
+              style={{ background: 'var(--accent)', color: '#fff' }}
             >
-              Ch. {next.chapterNumber} &rarr;
+              Ch. {next.chapterNumber} →
             </Link>
           ) : <div />}
         </div>

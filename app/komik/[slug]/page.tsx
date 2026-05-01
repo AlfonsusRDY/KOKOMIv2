@@ -25,24 +25,26 @@ export default async function ComicDetailPage({ params }: PageProps) {
   const type = detail.info?.Tipe ?? detail.info?.Type ?? null;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen">
       {/* Blurred hero backdrop */}
-      <div className="relative h-52 overflow-hidden">
+      <div className="relative h-64 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={detail.thumbnail}
           alt=""
-          className="w-full h-full object-cover blur-2xl scale-110"
-          style={{ opacity: 0.15 }}
+          className="w-full h-full object-cover blur-3xl scale-110"
+          style={{ opacity: 0.08 }}
         />
         <div
           className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, transparent, var(--bg-primary))' }}
+          style={{
+            background:
+              'linear-gradient(to bottom, rgba(218,119,86,0.04) 0%, var(--bg-primary) 90%)',
+          }}
         />
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-36 pb-16 relative">
-        {/* Back button + comic info via client component for locale */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-48 pb-20 relative">
         <ComicDetailHero
           title={detail.title}
           thumbnail={detail.thumbnail}
@@ -55,8 +57,6 @@ export default async function ComicDetailPage({ params }: PageProps) {
           readers={detail.info?.Readers ?? null}
           slug={params.slug}
         />
-
-        {/* Chapter list */}
         <ChapterList chapters={detail.chapters} slug={params.slug} />
       </div>
     </div>

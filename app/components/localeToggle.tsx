@@ -9,17 +9,21 @@ export default function LocaleToggle() {
   const { locale, setLocale } = useLocale();
 
   return (
-    <div className="flex items-center rounded-lg border border-[#2E3446] overflow-hidden text-xs font-semibold">
+    <div
+      className="flex items-center rounded-lg overflow-hidden text-xs font-semibold"
+      style={{ background: 'var(--bg-raised)', border: '1px solid var(--border-strong)' }}
+    >
       {locales.map((l, i) => (
         <button
           key={l}
           onClick={() => setLocale(l)}
           aria-label={`Switch to ${l.toUpperCase()}`}
-          className={`px-2.5 py-1.5 transition-colors ${
-            locale === l
-              ? "bg-[#2D9CDB] text-white"
-              : "bg-transparent text-[#8B8FA3] hover:text-[#E8E9ED]"
-          } ${i < locales.length - 1 ? "border-r border-[#2E3446]" : ""}`}
+          className="px-2.5 py-1.5 transition-all duration-150"
+          style={{
+            background: locale === l ? 'var(--accent)' : 'transparent',
+            color: locale === l ? '#fff' : 'var(--text-tertiary)',
+            borderRight: i < locales.length - 1 ? '1px solid var(--border-strong)' : 'none',
+          }}
         >
           {l.toUpperCase()}
         </button>

@@ -1,14 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import type { PustakaItem } from "@/lib/api";
+
+/** Binary-search to find the last valid app-page (each app-page = 2 API pages). */
+async function discoverLastPage(): Promise<number> {
+  const hasResults = async (appPage: number) => {
+    try {
+      const res = await fetch(`/api/pustaka?page=${appPage * 2 - 1}`);
+      if (!res.ok) return false;
+      const d = await res.json();
+      return Array.isArray(d.results) && d.results.length > 0;
+    } catch {
+      return false;
+    }
+  };
+
+  let lo = 1, hi = 256;
+  // Clamp hi to actual existence
+  if (!(await hasResults(hi))) {
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi + 1) / 2);
+      if (await hasResults(mid)) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
+  }
+  return hi; // More than 256 pages — return 256 as lower bound
+}
 
 export default function LatestClient({ initialData, hideHeader }: { initialData: PustakaItem[], hideHeader?: boolean }) {
   const [items, setItems] = useState<PustakaItem[]>(initialData);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [lastPage, setLastPage] = useState<number | null>(null);
+
+  // Discover total pages in the background on mount
+  useEffect(() => {
+    discoverLastPage().then(n => setLastPage(n));
+  }, []);
 
   const goToPage = async (newPage: number) => {
     if (loading || newPage < 1) return;
@@ -33,6 +65,8 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
         setHasMore(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
+        // data1 empty means newPage doesn't exist — last page was newPage-1
+        setLastPage(newPage - 1);
         setHasMore(false);
       }
       
@@ -53,6 +87,8 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
           });
           setHasMore(true);
         } else {
+          // data2 empty means newPage is the last page
+          setLastPage(newPage);
           setHasMore(false);
         }
       }
@@ -64,27 +100,61 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
   };
 
   const renderPageNumbers = () => {
-    const pages = [];
-    const start = Math.max(1, page - 2);
-    const end = page + 2;
-    for (let i = start; i <= end; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => goToPage(i)}
-          disabled={loading || i === page}
-          className="w-10 h-10 flex items-center justify-center rounded-lg font-bold text-sm transition-all hover:opacity-80 disabled:hover:opacity-100"
-          style={{ 
-            backgroundColor: i === page ? 'var(--accent)' : 'var(--bg-raised)', 
-            color: i === page ? '#fff' : 'var(--text-primary)',
-            opacity: (loading && i !== page) ? 0.5 : 1
-          }}
-        >
-          {i}
-        </button>
+    const delta = 1;
+    const pageSet = new Set<number>();
+
+    // Always include page 1
+    pageSet.add(1);
+    // Always include last page if known
+    if (lastPage) pageSet.add(lastPage);
+    // Include window around current page
+    const winStart = Math.max(2, page - delta);
+    const winEnd = lastPage ? Math.min(lastPage - 1, page + delta) : page + delta;
+    for (let i = winStart; i <= winEnd; i++) pageSet.add(i);
+
+    const sorted = Array.from(pageSet).sort((a, b) => a - b);
+    const result: React.ReactNode[] = [];
+    let prev = 0;
+
+    const pageBtn = (p: number) => (
+      <button
+        key={p}
+        onClick={() => goToPage(p)}
+        disabled={loading || p === page}
+        className="w-9 h-9 flex items-center justify-center rounded-xl font-semibold text-sm transition-all duration-150 disabled:cursor-default"
+        style={{
+          background: p === page ? 'var(--accent)' : 'var(--bg-surface)',
+          color: p === page ? '#fff' : 'var(--text-secondary)',
+          border: `1px solid ${p === page ? 'var(--accent)' : 'var(--border-strong)'}`,
+          opacity: (loading && p !== page) ? 0.4 : 1,
+        }}
+      >
+        {p}
+      </button>
+    );
+
+    for (const p of sorted) {
+      if (p - prev > 1) {
+        result.push(
+          <span key={`dots-${p}`} className="w-9 h-9 flex items-center justify-center text-sm select-none" style={{ color: 'var(--text-tertiary)' }}>
+            ...
+          </span>
+        );
+      }
+      result.push(pageBtn(p));
+      prev = p;
+    }
+
+    // Trailing ellipsis when we don't know the last page yet
+    if (!lastPage && hasMore) {
+      result.push(
+        <span key="dots-end" className="w-9 h-9 flex items-center justify-center text-sm select-none" style={{ color: 'var(--text-tertiary)' }}>
+          ...
+        </span>
       );
     }
-    return pages;
+
+    return result;
   };
 
   return (
@@ -92,30 +162,37 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
       {!hideHeader && (
         <div className="mb-8 flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
               All Latest Updates
             </h1>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Discover the newest manga, manhwa, and manhua added to our collection.
+              Newest manga, manhwa, and manhua.
             </p>
           </div>
-          <div className="hidden sm:block text-sm font-semibold px-4 py-2 rounded-lg" style={{ backgroundColor: 'var(--bg-raised)', color: 'var(--accent)' }}>
+          <div
+            className="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
+            style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Page {page}
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 animate-pulse">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: 20 }).map((_, i) => (
-             <div key={i} className="flex flex-col rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-               <div className="w-full aspect-[3/4]" style={{ backgroundColor: 'var(--bg-raised)' }} />
-               <div className="p-3 space-y-3"><div className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--bg-raised)' }} /><div className="h-3 rounded w-1/2" style={{ backgroundColor: 'var(--bg-raised)' }} /></div>
-             </div>
+            <div key={i} className="flex flex-col rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              <div className="w-full aspect-[3/4] skeleton" />
+              <div className="p-3 space-y-2">
+                <div className="h-3 skeleton rounded-md w-4/5" />
+                <div className="h-3 skeleton rounded-md w-3/5" />
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {items.slice(0, 20).map((comic: PustakaItem) => {
             const slug = comic.detailUrl.replace('/detail-komik/', '');
             const isColored = comic.stats.toLowerCase().includes("berwarna");
@@ -126,22 +203,26 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
               <Link
                 key={slug + Math.random()}
                 href={`/komik/${slug}`}
-                className="group flex flex-col rounded-xl overflow-hidden transition-transform duration-200 hover:-translate-y-1"
-                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                className="group flex flex-col rounded-2xl overflow-hidden card-hover"
+                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
               >
-                <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ backgroundColor: 'var(--bg-raised)' }}>
+                <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ background: 'var(--bg-raised)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={comic.thumbnail} alt={comic.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" />
-                  {isColored && <span className="absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>COLOR</span>}
-                  <div className="absolute bottom-0 left-0 right-0 p-2 pt-6 bg-gradient-to-t from-black/80 to-transparent"><span className="text-[10px] font-bold text-white uppercase">{comic.type}</span></div>
+                  <img src={comic.thumbnail} alt={comic.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]" loading="lazy" decoding="async" />
+                  {isColored && (
+                    <span className="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-md text-white" style={{ background: 'var(--accent)' }}>COLOR</span>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 h-16 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}>
+                    <span className="absolute bottom-2 left-2.5 text-[10px] font-bold tracking-widest uppercase text-white/80">{comic.type}</span>
+                  </div>
                 </div>
-                <div className="p-3 flex flex-col flex-1">
-                  <h3 className="font-semibold line-clamp-2 text-sm leading-tight mb-2" style={{ color: 'var(--text-primary)' }}>{comic.title}</h3>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="text-xs px-2 py-0.5 rounded font-medium truncate max-w-[60%]" style={{ backgroundColor: 'var(--bg-raised)', color: 'var(--accent)' }}>
+                <div className="p-3 flex flex-col gap-1.5">
+                  <h3 className="font-semibold line-clamp-2 text-xs leading-snug" style={{ color: 'var(--text-primary)' }}>{comic.title}</h3>
+                  <div className="flex items-center justify-between mt-auto pt-1">
+                    <span className="text-[10px] px-2 py-0.5 rounded-md font-medium truncate max-w-[62%]" style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}>
                       {comic.latestChapter.title.replace(comic.title, '').trim() || comic.latestChapter.title}
                     </span>
-                    <span className="text-[10px] whitespace-nowrap ml-2" style={{ color: 'var(--text-secondary)' }}>{updateTime}</span>
+                    <span className="text-[10px] whitespace-nowrap ml-1.5" style={{ color: 'var(--text-tertiary)' }}>{updateTime}</span>
                   </div>
                 </div>
               </Link>
@@ -154,21 +235,21 @@ export default function LatestClient({ initialData, hideHeader }: { initialData:
         <button
           onClick={() => goToPage(page - 1)}
           disabled={loading || page === 1}
-          className="px-4 h-10 flex items-center justify-center rounded-lg font-bold text-sm transition-opacity disabled:opacity-50"
-          style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+          className="px-4 h-9 flex items-center gap-1.5 rounded-xl font-semibold text-sm transition-all duration-150 disabled:opacity-40"
+          style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' }}
         >
-          &larr; Prev
+          Prev
         </button>
 
         {renderPageNumbers()}
 
         <button
           onClick={() => goToPage(page + 1)}
-          disabled={loading || !hasMore}
-          className="px-4 h-10 flex items-center justify-center rounded-lg font-bold text-sm transition-opacity disabled:opacity-50"
-          style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+          disabled={loading || !hasMore || page === lastPage}
+          className="px-4 h-9 flex items-center gap-1.5 rounded-xl font-semibold text-sm transition-all duration-150 disabled:opacity-40"
+          style={{ background: 'var(--accent)', color: '#fff' }}
         >
-          Next &rarr;
+          Next
         </button>
       </div>
     </div>

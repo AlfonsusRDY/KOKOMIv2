@@ -1,6 +1,6 @@
 /**
  * Global CSS for TMKOKOMI
- * Path: app/globals.css
+ * Anthropic — Monochrome Dark with Claude Orange Accent
  */
 
 @tailwind base;
@@ -8,44 +8,38 @@
 @tailwind utilities;
 
 :root {
-  /* Calm Sage & Earth palette - Dark Mode (primary) */
-  --bg-primary:      #181917;
-  --bg-surface:      #1F211E;
-  --bg-raised:       #292B28;
-  --border:          #383C36;
-  --text-primary:    #E2E4DE;
-  --text-secondary:  #92988E;
-  --accent:          #829A7F; /* Soft Sage Green */
-  --accent-hover:    #697E66;
-  --success:         #668668;
-  --warning:         #BCA178;
+  /* ── Monochrome Dark (Apple system palette) ── */
+  --bg-primary:      #111113;       /* near-black canvas */
+  --bg-surface:      #1C1C1E;       /* Apple system grouped bg */
+  --bg-raised:       #2C2C2E;       /* Apple secondary fill */
+  --bg-elevated:     #3A3A3C;       /* Apple tertiary fill */
+  --border:          rgba(255,255,255,0.08);
+  --border-strong:   rgba(255,255,255,0.13);
 
-  scroll-behavior: smooth;
+  /* ── Typography ── */
+  --text-primary:    #F5F5F7;       /* Apple primary label */
+  --text-secondary:  #8E8E93;       /* Apple secondary label */
+  --text-tertiary:   #636366;       /* Apple tertiary label */
+
+  /* ── Accent (Claude Orange) ── */
+  --accent:          #DA7756;
+  --accent-hover:    #E8976E;
+  --accent-subtle:   rgba(218,119,86,0.12);
+  --accent-border:   rgba(218,119,86,0.35);
+
+  /* ── Semantic ── */
+  --success:         #30D158;
+  --success-subtle:  rgba(48,209,88,0.12);
+  --danger:          #FF453A;
+  --danger-subtle:   rgba(255,69,58,0.12);
+  --warning:         #FF9F0A;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    /* Calm Sage palette - Light Mode */
-    --bg-primary:      #F7F8F6;
-    --bg-surface:      #FFFFFF;
-    --bg-raised:       #EEF0EC;
-    --border:          #D8DCD4;
-    --text-primary:    #2B2D29;
-    --text-secondary:  #6B7067;
-    --accent:          #5F755C;
-    --accent-hover:    #495C46;
-    --success:         #476649;
-    --warning:         #9E7B4E;
-  }
-}
-
-/* Base */
-* {
+/* ── Base resets ────────────────────────────────── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  scrollbar-color: var(--border) var(--bg-surface);
-  scrollbar-width: thin;
 }
 
 html {
@@ -53,40 +47,60 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
+  scrollbar-color: var(--bg-elevated) transparent;
+  scrollbar-width: thin;
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-montserrat), -apple-system, BlinkMacSystemFont,
+    'SF Pro Text', 'Helvetica Neue', 'Segoe UI', sans-serif;
   line-height: 1.6;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  min-height: 100dvh;
+
+  /* Subtle dot-grid texture — depth without noise */
+  background-image: radial-gradient(
+    circle,
+    rgba(255,255,255,0.030) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-surface); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-/* Resets */
+/* ── Element resets ─────────────────────────────── */
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
 button { border: none; background: none; cursor: pointer; font-family: inherit; }
 
-/* Focus */
+/* ── Focus ring ─────────────────────────────────── */
 button:focus-visible,
-a:focus-visible {
+a:focus-visible,
+input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* Utility */
+/* ── Layout helper ──────────────────────────────── */
 .container {
   @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
+/* ── Glass surface ──────────────────────────────── */
+.glass {
+  background: rgba(28, 28, 30, 0.80);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ── Line clamps ────────────────────────────────── */
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -116,53 +130,59 @@ a:focus-visible {
   overflow: hidden;
 }
 
-/* Animations */
+/* ── Animations ─────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 @keyframes slideInUp {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
 }
 
-.animate-fade-in     { animation: fadeIn    0.25s ease-in; }
-.animate-slide-in-up { animation: slideInUp 0.25s ease-out; }
-.animate-pulse-subtle { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-fade-in     { animation: fadeIn    0.3s ease; }
+.animate-slide-in-up { animation: slideInUp 0.35s cubic-bezier(0.16,1,0.3,1); }
 
-/* Skeleton */
+/* ── Skeleton shimmer ───────────────────────────── */
 .skeleton {
-  @apply rounded animate-pulse;
-  background-color: var(--bg-raised);
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-raised) 25%,
+    var(--bg-elevated) 50%,
+    var(--bg-raised) 75%
+  );
+  background-size: 200% auto;
+  animation: shimmer 1.6s linear infinite;
 }
 
-/* State messages */
-.errorMessage {
-  padding: 0.75rem 1rem;
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
-  border-radius: 0.5rem;
+/* ── Chip / badge ───────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-.successMessage {
-  padding: 0.75rem 1rem;
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success);
-  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
-  border-radius: 0.5rem;
+/* ── Card hover lift ────────────────────────────── */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
 }
 
-/* Mobile typography */
-@media (max-width: 640px) {
-  html { font-size: 15px; }
-}
-
-/* Reduced motion */
+/* ── Reduced motion ─────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -172,7 +192,7 @@ a:focus-visible {
   }
 }
 
-/* Print */
+/* ── Print ──────────────────────────────────────── */
 @media print {
   body { background: white; color: black; }
   nav, footer { display: none; }

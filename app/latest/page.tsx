@@ -17,7 +17,7 @@ export default async function LatestPage() {
   const initialData = [...(data1?.results || []), ...(data2?.results || [])];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen">
       <LatestClient initialData={initialData} />
     </div>
   );

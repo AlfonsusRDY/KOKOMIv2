@@ -14,15 +14,17 @@ import LatestClient from "./latest/LatestClient";
 
 function LatestCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-xl overflow-hidden animate-pulse"
-      style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-      <div className="w-full aspect-[3/4]" style={{ backgroundColor: 'var(--bg-raised)' }} />
-      <div className="p-3 space-y-3">
-        <div className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--bg-raised)' }} />
-        <div className="h-3 rounded w-1/2" style={{ backgroundColor: 'var(--bg-raised)' }} />
-        <div className="flex justify-between items-center mt-2">
-          <div className="h-5 rounded w-16" style={{ backgroundColor: 'var(--bg-raised)' }} />
-          <div className="h-3 rounded w-10" style={{ backgroundColor: 'var(--bg-raised)' }} />
+    <div
+      className="flex flex-col rounded-2xl overflow-hidden"
+      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+    >
+      <div className="w-full aspect-[3/4] skeleton" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 skeleton rounded-md w-4/5" />
+        <div className="h-3 skeleton rounded-md w-3/5" />
+        <div className="flex justify-between items-center pt-1">
+          <div className="h-4 skeleton rounded-md w-16" />
+          <div className="h-3 skeleton rounded-md w-10" />
         </div>
       </div>
     </div>
@@ -31,13 +33,15 @@ function LatestCardSkeleton() {
 
 function PopularRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 py-3 animate-pulse"
-      style={{ borderBottom: '1px solid var(--border)' }}>
-      <div className="w-7 h-7 rounded-md flex-shrink-0" style={{ backgroundColor: 'var(--bg-raised)' }} />
-      <div className="w-8 h-10 rounded flex-shrink-0" style={{ backgroundColor: 'var(--bg-raised)' }} />
+    <div
+      className="flex items-center gap-3 py-3"
+      style={{ borderBottom: '1px solid var(--border)' }}
+    >
+      <div className="w-7 h-7 skeleton rounded-lg flex-shrink-0" />
+      <div className="w-9 h-12 skeleton rounded-lg flex-shrink-0" />
       <div className="flex-1 space-y-1.5">
-        <div className="h-3 rounded w-4/5" style={{ backgroundColor: 'var(--bg-raised)' }} />
-        <div className="h-2 rounded w-1/3" style={{ backgroundColor: 'var(--bg-raised)' }} />
+        <div className="h-3 skeleton rounded-md w-4/5" />
+        <div className="h-2.5 skeleton rounded-md w-1/3" />
       </div>
     </div>
   );
@@ -97,15 +101,15 @@ async function PopularSection() {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen">
       <HeroSection />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Latest */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col lg:flex-row gap-10">
+          {/* Latest Updates */}
           <section className="flex-1 min-w-0">
             <SectionHeading titleKey="latestUpdates" subtitleKey="latestFirst" />
             <Suspense fallback={
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {Array.from({ length: 20 }).map((_, i) => <LatestCardSkeleton key={i} />)}
               </div>
             }>
@@ -114,16 +118,23 @@ export default function HomePage() {
           </section>
 
           {/* Popular sidebar */}
-          <aside className="lg:w-72 flex-shrink-0">
+          <aside className="lg:w-68 xl:w-72 flex-shrink-0">
             <div className="sticky top-20">
               <SectionHeading titleKey="popularComics" subtitleKey="topTen" />
-              <div className="rounded-xl p-4"
-                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-                <Suspense fallback={
-                  <>{Array.from({ length: 5 }).map((_, i) => <PopularRowSkeleton key={i} />)}</>
-                }>
-                  <PopularSection />
-                </Suspense>
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <div className="px-4 pt-2 pb-1">
+                  <Suspense fallback={
+                    <>{Array.from({ length: 6 }).map((_, i) => <PopularRowSkeleton key={i} />)}</>
+                  }>
+                    <PopularSection />
+                  </Suspense>
+                </div>
               </div>
             </div>
           </aside>
