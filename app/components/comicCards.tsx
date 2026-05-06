@@ -22,7 +22,7 @@ export function LatestCard({ comic }: { comic: TerbaruItem }) {
         <img
           src={comic.thumbnail}
           alt={comic.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+          className="w-full h-full object-cover"
           loading="lazy"
           decoding="async"
         />

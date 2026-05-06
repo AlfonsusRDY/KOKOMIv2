@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import { LocaleProvider } from './components/localeProvider';
-import LocaleToggle from './components/localeToggle';
-import NavLinks from './components/navLinks';
+import NotificationBell from './components/notificationBell';
+import SearchBar from './components/searchBar';
+import ThemeSwitcher from './components/themeSwitcher';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -28,30 +29,43 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         <LocaleProvider>
           {/* ── Navigation ─────────────────────────────── */}
-          <nav className="sticky top-0 z-40 glass border-b" style={{ borderColor: 'var(--border)' }}>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-14 gap-6">
+          <nav className="sticky top-0 z-40 border-b" style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}>
+            <div className="max-w-[1728px] mx-auto px-4 sm:px-8 lg:px-12">
+              <div className="grid grid-cols-[auto_1fr_auto] items-center h-20 gap-5 lg:gap-8">
                 {/* Logo */}
                 <a
                   href="/"
-                  className="flex items-center flex-shrink-0 group"
+                  className="flex items-center gap-2.5 flex-shrink-0 group"
                 >
                   <span
-                    className="text-sm font-bold tracking-tight transition-opacity group-hover:opacity-70"
+                    className="relative flex h-8 w-8 items-center justify-center rounded-md border text-lg font-black leading-none transition-opacity group-hover:opacity-80"
+                    style={{ borderColor: 'var(--border-strong)', color: 'var(--accent)' }}
+                  >
+                    X
+                  </span>
+                  <span
+                    className="hidden sm:inline text-xl font-black tracking-tight transition-opacity group-hover:opacity-70"
                     style={{ color: 'var(--text-primary)' }}
                   >
                     TMKOKOMI
                   </span>
                 </a>
 
+                <div className="hidden md:block max-w-2xl w-full mx-auto">
+                  <SearchBar compact autoFocus={false} />
+                </div>
+
                 {/* Nav items */}
-                <div className="flex items-center gap-1">
-                  <NavLinks />
+                <div className="flex items-center justify-end gap-2">
+                  <ThemeSwitcher />
+                  <NotificationBell />
                   <div
-                    className="w-px h-4 mx-1 flex-shrink-0"
-                    style={{ backgroundColor: 'var(--border-strong)' }}
-                  />
-                  <LocaleToggle />
+                    className="hidden h-10 w-10 items-center justify-center overflow-hidden rounded-full border sm:flex"
+                    style={{ background: 'var(--bg-raised)', borderColor: 'var(--border-strong)' }}
+                    aria-label="Profile"
+                  >
+                    <span className="text-lg font-black" style={{ color: 'var(--accent)' }}>TM</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -72,7 +86,7 @@ export default function RootLayout({
                   </span>
                 </div>
                 <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                  &copy; {new Date().getFullYear()} TMKOKOMI. Free to read, built for fun.
+                  &copy; {new Date().getFullYear()} TMKOKOMI. TM dedicated manga reading app.
                 </p>
               </div>
             </div>

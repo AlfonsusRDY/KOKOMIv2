@@ -4,15 +4,21 @@ import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useLocale } from "./localeProvider";
 
-export default function SearchBar() {
+interface SearchBarProps {
+  compact?: boolean;
+  autoFocus?: boolean;
+  className?: string;
+}
+
+export default function SearchBar({ compact = false, autoFocus = true, className = "" }: SearchBarProps) {
   const router = useRouter();
   const { t } = useLocale();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +27,13 @@ export default function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2.5 max-w-xl mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className={`flex gap-2.5 ${compact ? "w-full" : "max-w-xl mx-auto"} ${className}`}
+    >
       {/* Search input */}
       <div
-        className="relative flex-1 rounded-2xl overflow-hidden transition-all duration-200"
+        className={`${compact ? "rounded-lg" : "rounded-2xl"} relative flex-1 overflow-hidden transition-all duration-200`}
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-strong)',
@@ -52,8 +61,8 @@ export default function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={t.searchPlaceholder}
-          className="w-full pl-11 pr-4 py-3.5 text-sm bg-transparent focus:outline-none"
+          placeholder={compact ? "Search comic..." : t.searchPlaceholder}
+          className={`w-full pl-11 pr-4 text-sm bg-transparent focus:outline-none ${compact ? "py-3" : "py-3.5"}`}
           style={{ color: 'var(--text-primary)' }}
         />
       </div>
@@ -61,12 +70,12 @@ export default function SearchBar() {
       {/* Submit */}
       <button
         type="submit"
-        className="px-6 py-3.5 text-white text-sm font-semibold rounded-2xl whitespace-nowrap transition-all duration-150 active:scale-95"
+        className={`${compact ? "px-4 py-3 rounded-lg text-xs" : "px-6 py-3.5 rounded-2xl text-sm"} text-white font-semibold whitespace-nowrap transition-all duration-150 active:scale-95`}
         style={{ background: 'var(--accent)' }}
         onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
         onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
       >
-        {t.search}
+        {compact ? "FILTER" : t.search}
       </button>
     </form>
   );

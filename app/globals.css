@@ -13,6 +13,8 @@
   --bg-surface:      #1C1C1E;       /* Apple system grouped bg */
   --bg-raised:       #2C2C2E;       /* Apple secondary fill */
   --bg-elevated:     #3A3A3C;       /* Apple tertiary fill */
+  --nav-bg:          rgba(34,34,34,0.96);
+  --dot-color:       rgba(255,255,255,0.030);
   --border:          rgba(255,255,255,0.08);
   --border-strong:   rgba(255,255,255,0.13);
 
@@ -24,6 +26,7 @@
   /* ── Accent (Claude Orange) ── */
   --accent:          #DA7756;
   --accent-hover:    #E8976E;
+  --accent-contrast: #111113;
   --accent-subtle:   rgba(218,119,86,0.12);
   --accent-border:   rgba(218,119,86,0.35);
 
@@ -33,6 +36,44 @@
   --danger:          #FF453A;
   --danger-subtle:   rgba(255,69,58,0.12);
   --warning:         #FF9F0A;
+}
+
+:root[data-theme="dark"] {
+  --bg-primary:      #141218;
+  --bg-surface:      #29272d;
+  --bg-raised:       #222026;
+  --bg-elevated:     #34313a;
+  --nav-bg:          rgba(34,32,38,0.96);
+  --dot-color:       rgba(255,255,255,0.035);
+  --border:          rgba(255,255,255,0.08);
+  --border-strong:   rgba(255,255,255,0.14);
+  --text-primary:    #F7F4FF;
+  --text-secondary:  #A7A1B1;
+  --text-tertiary:   #787180;
+  --accent:          #9774F6;
+  --accent-hover:    #A98AFE;
+  --accent-contrast: #15111D;
+  --accent-subtle:   rgba(151,116,246,0.14);
+  --accent-border:   rgba(151,116,246,0.38);
+}
+
+:root[data-theme="light"] {
+  --bg-primary:      #F7F7F8;
+  --bg-surface:      #FFFFFF;
+  --bg-raised:       #ECECF0;
+  --bg-elevated:     #DDDEE6;
+  --nav-bg:          rgba(255,255,255,0.96);
+  --dot-color:       rgba(18,18,22,0.045);
+  --border:          rgba(12,12,16,0.09);
+  --border-strong:   rgba(12,12,16,0.16);
+  --text-primary:    #151518;
+  --text-secondary:  #62626B;
+  --text-tertiary:   #8B8B94;
+  --accent:          #7C5DF1;
+  --accent-hover:    #6E50DD;
+  --accent-contrast: #FFFFFF;
+  --accent-subtle:   rgba(124,93,241,0.12);
+  --accent-border:   rgba(124,93,241,0.35);
 }
 
 /* ── Base resets ────────────────────────────────── */
@@ -62,7 +103,7 @@ body {
   /* Subtle dot-grid texture — depth without noise */
   background-image: radial-gradient(
     circle,
-    rgba(255,255,255,0.030) 1px,
+    var(--dot-color) 1px,
     transparent 1px
   );
   background-size: 22px 22px;
