@@ -234,6 +234,31 @@ input:focus-visible {
 }
 
 /* ── Print ──────────────────────────────────────── */
+/* Reader focus mode */
+[data-app-chrome],
+[data-reader-chrome] {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    visibility 0.22s ease;
+}
+
+:root[data-reader-focus="true"] [data-app-chrome],
+:root[data-reader-focus="true"] [data-reader-chrome] {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+:root[data-reader-focus="true"] nav[data-app-chrome],
+:root[data-reader-focus="true"] [data-reader-chrome] {
+  transform: translateY(-100%);
+}
+
+:root[data-reader-focus="true"] footer[data-app-chrome] {
+  transform: translateY(24px);
+}
+
 @media print {
   body { background: white; color: black; }
   nav, footer { display: none; }

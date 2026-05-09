@@ -8,6 +8,7 @@ A manga reading platform built with Next.js 14, React 18, Tailwind CSS 3, and Ty
 - React 18 (Suspense streaming)
 - Tailwind CSS 3
 - TypeScript 5
+- Firebase Auth, Firestore, and Analytics
 
 ## Getting Started
 
@@ -35,8 +36,30 @@ cp .env.example .env.local
 | Variable | Description | Default |
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | Base URL of the Komiku REST API | `https://mangaverse-api.vercel.app` |
+| `KIRYUU_API_URL` | Optional Kiryuu summary API fallback | `http://45.76.148.33:8080/api/kiryuu/v6` |
 | `NEXT_PUBLIC_APP_NAME` | App name shown in UI | `TMKOKOMI` |
 | `NEXT_PUBLIC_APP_VERSION` | App version | `1.0.0` |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web API key | Required for account sync |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase auth domain | Required for account sync |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID | Required for account sync |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | Optional until Storage is used |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase sender ID | Optional until Messaging is used |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase app ID | Required for account sync |
+| `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | Firebase analytics measurement ID | Optional |
+
+### Firebase
+
+This project is configured for Firebase project `kokomi-83997`.
+
+1. Enable Email/Password sign-in in Firebase Console > Authentication > Sign-in method.
+2. Create a Firestore database.
+3. Deploy the included Firestore rules:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+User data is stored under `users/{uid}` with `favorites` and `history` subcollections. The rules only allow each signed-in user to read and write their own data.
 
 ### Running Locally
 
@@ -96,6 +119,8 @@ types/
 
 Base URL: `https://mangaverse-api.vercel.app`
 
+The app keeps the Komiku-compatible API as the primary source because it supports detail pages and chapter image endpoints used by the reader. It also includes a Kiryuu summary fallback based on `nuzulr24/kiryuu-api` for latest/popular lists when the primary list endpoints fail. The older `febryardiansyah/manga-api` project is used as a Komiku scraper reference; its documented hosted endpoint is not reliable enough to use directly. `shafat-96/asura` is a useful parser reference for AsuraScans, but it is a different catalog and is not a drop-in replacement for Komiku slugs.
+
 | Endpoint | Description | Cache |
 |---|---|---|
 | `GET /komik-populer` | Popular manga/manhwa/manhua | 5 min |
@@ -111,6 +136,7 @@ Base URL: `https://mangaverse-api.vercel.app`
 - IntersectionObserver-based lazy loading for manga page images with 800px preload margin
 - Client-side chapter list: range-tab pagination, search filter, scroll-to-start
 - en/id language toggle in navbar, persisted to localStorage
+- Optional account sync with Firebase Auth and Firestore
 - Mobile-first responsive design
 
 ## Scripts

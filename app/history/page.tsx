@@ -51,47 +51,59 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {history.map((item) => (
-            <Link
-              key={item.slug}
-              href={`/komik/${item.slug}/chapter/${item.lastChapter}`}
-              className="group flex gap-4 p-4 rounded-2xl transition-all duration-150"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-border)';
-                (e.currentTarget as HTMLElement).style.background = 'var(--bg-raised)';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-                (e.currentTarget as HTMLElement).style.background = 'var(--bg-surface)';
-              }}
-            >
-              <div className="flex-shrink-0 w-14 h-20 rounded-xl overflow-hidden" style={{ background: 'var(--bg-raised)' }}>
-                {item.thumbnail ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ color: 'var(--text-tertiary)' }}>?</div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-sm line-clamp-2 mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {item.title}
-                </h2>
-                <div className="flex items-center gap-2">
+          {history.map((item) => {
+            const page = item.lastImageIndex + 1;
+            const params = new URLSearchParams({ page: String(page) });
+            if (item.sourceId) params.set("source", item.sourceId);
+
+            return (
+              <Link
+                key={item.slug}
+                href={`/komik/${item.slug}/chapter/${item.lastChapter}?${params.toString()}#page-${page}`}
+                className="group flex gap-4 p-4 rounded-2xl transition-all duration-150"
+                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-border)';
+                  (e.currentTarget as HTMLElement).style.background = 'var(--bg-raised)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                  (e.currentTarget as HTMLElement).style.background = 'var(--bg-surface)';
+                }}
+              >
+                <div className="relative flex-shrink-0 w-14 h-20 rounded-xl overflow-hidden" style={{ background: 'var(--bg-raised)' }}>
+                  {item.thumbnail ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ color: 'var(--text-tertiary)' }}>?</div>
+                  )}
                   <span
-                    className="chip"
-                    style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+                    className="absolute right-1 top-1 rounded px-1 py-0.5 text-[10px] font-black leading-none"
+                    style={{ background: 'var(--success)', color: '#111113' }}
                   >
-                    Ch. {item.lastChapter}
-                  </span>
-                  <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-                    {new Date(item.timestamp).toLocaleDateString()}
+                    {item.progress}%
                   </span>
                 </div>
-              </div>
-            </Link>
-          ))}
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-bold text-sm line-clamp-2 mb-2" style={{ color: 'var(--text-primary)' }}>
+                    {item.title}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="chip"
+                      style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+                    >
+                      Ch. {item.lastChapter} / {item.totalImages ? page : "?"}
+                    </span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                      {new Date(item.timestamp).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

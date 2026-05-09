@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import { LocaleProvider } from './components/localeProvider';
+import { AuthProvider } from './components/authProvider';
+import AccountButton from './components/accountButton';
 import NotificationBell from './components/notificationBell';
 import SearchBar from './components/searchBar';
 import ThemeSwitcher from './components/themeSwitcher';
@@ -28,8 +30,9 @@ export default function RootLayout({
     <html lang="en" className={montserrat.variable}>
       <body className="antialiased font-sans">
         <LocaleProvider>
+          <AuthProvider>
           {/* ── Navigation ─────────────────────────────── */}
-          <nav className="sticky top-0 z-40 border-b" style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}>
+          <nav data-app-chrome className="sticky top-0 z-40 border-b" style={{ borderColor: 'var(--border)', background: 'var(--nav-bg)' }}>
             <div className="max-w-[1728px] mx-auto px-4 sm:px-8 lg:px-12">
               <div className="grid grid-cols-[auto_1fr_auto] items-center h-20 gap-5 lg:gap-8">
                 {/* Logo */}
@@ -59,13 +62,7 @@ export default function RootLayout({
                 <div className="flex items-center justify-end gap-2">
                   <ThemeSwitcher />
                   <NotificationBell />
-                  <div
-                    className="hidden h-10 w-10 items-center justify-center overflow-hidden rounded-full border sm:flex"
-                    style={{ background: 'var(--bg-raised)', borderColor: 'var(--border-strong)' }}
-                    aria-label="Profile"
-                  >
-                    <span className="text-lg font-black" style={{ color: 'var(--accent)' }}>TM</span>
-                  </div>
+                  <AccountButton />
                 </div>
               </div>
             </div>
@@ -77,7 +74,7 @@ export default function RootLayout({
           </main>
 
           {/* ── Footer ────────────────────────────────── */}
-          <footer className="border-t mt-16" style={{ borderColor: 'var(--border)' }}>
+          <footer data-app-chrome className="border-t mt-16" style={{ borderColor: 'var(--border)' }}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
@@ -91,6 +88,7 @@ export default function RootLayout({
               </div>
             </div>
           </footer>
+          </AuthProvider>
         </LocaleProvider>
       </body>
     </html>

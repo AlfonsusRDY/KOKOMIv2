@@ -2,6 +2,7 @@
 export const revalidate = 600;
 
 import { notFound } from "next/navigation";
+import { getAggregatedComic } from "@/lib/aggregator";
 import { getComicDetail } from "@/lib/api";
 import ChapterList from "./components/chapterList";
 import ComicDetailHero from "./components/comicDetailHero";
@@ -11,11 +12,36 @@ interface PageProps {
 }
 
 export default async function ComicDetailPage({ params }: PageProps) {
+  const { slug } = params;
+
+  // Try aggregated (multi-source) first, fall back to Komiku-only
   let detail = null;
+  let multiChapters: import("@/types/source.types").MultiSourceChapter[] | undefined = undefined;
+
   try {
-    detail = await getComicDetail(params.slug);
+    const aggregated = await getAggregatedComic(slug);
+    detail = {
+      title: aggregated.comic.title,
+      thumbnail: aggregated.comic.thumbnail,
+      sinopsis: aggregated.comic.description,
+      description: aggregated.comic.description,
+      info: {
+        Status: aggregated.comic.status,
+        ...(aggregated.comic.author ? { Author: aggregated.comic.author } : {}),
+        ...(aggregated.comic.type ? { Tipe: aggregated.comic.type } : {}),
+      },
+      genres: aggregated.comic.genres,
+      slug,
+      chapters: [], // not used when multiChapters is set
+    };
+    multiChapters = aggregated.chapters;
   } catch {
-    notFound();
+    // Aggregator failed — try plain Komiku
+    try {
+      detail = await getComicDetail(slug);
+    } catch {
+      notFound();
+    }
   }
 
   if (!detail) notFound();
@@ -39,7 +65,7 @@ export default async function ComicDetailPage({ params }: PageProps) {
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(to bottom, rgba(218,119,86,0.04) 0%, var(--bg-primary) 90%)',
+              "linear-gradient(to bottom, rgba(218,119,86,0.04) 0%, var(--bg-primary) 90%)",
           }}
         />
       </div>
@@ -53,11 +79,15 @@ export default async function ComicDetailPage({ params }: PageProps) {
           type={type}
           genres={detail.genres ?? []}
           sinopsis={detail.sinopsis || detail.description}
-          chapterCount={detail.chapters.length}
+          chapterCount={multiChapters?.length ?? detail.chapters.length}
           readers={detail.info?.Readers ?? null}
-          slug={params.slug}
+          slug={slug}
         />
-        <ChapterList chapters={detail.chapters} slug={params.slug} />
+        <ChapterList
+          multiChapters={multiChapters}
+          chapters={multiChapters ? undefined : detail.chapters}
+          slug={slug}
+        />
       </div>
     </div>
   );

@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read, create, update, delete: if isOwner(userId);
+
+      match /favorites/{slug} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.slug == slug
+          && request.resource.data.keys().hasOnly([
+            'slug',
+            'title',
+            'thumbnail',
+            'type'
+          ]);
+      }
+
+      match /history/{slug} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.slug == slug
+          && request.resource.data.keys().hasOnly([
+            'slug',
+            'title',
+            'thumbnail',
+            'lastChapter',
+            'lastImageIndex',
+            'totalImages',
+            'progress',
+            'timestamp',
+            'sourceId',
+            'sourceName'
+          ])
+          && request.resource.data.lastImageIndex >= 0
+          && request.resource.data.totalImages >= 0
+          && request.resource.data.progress >= 0
+          && request.resource.data.progress <= 100
+          && (
+            !request.resource.data.keys().hasAny(['sourceId'])
+            || request.resource.data.sourceId in ['komiku', 'asura', 'kiryuu', 'mangamint']
+          )
+          && (
+            !request.resource.data.keys().hasAny(['sourceName'])
+            || request.resource.data.sourceName is string
+          );
+      }
+    }
+  }
+}

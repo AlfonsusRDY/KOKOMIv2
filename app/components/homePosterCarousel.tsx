@@ -11,6 +11,7 @@ export type HomePosterItem = {
   time: string;
   type?: string;
   href?: string;
+  progress?: number;
 };
 
 function useItemsPerPage() {
@@ -106,6 +107,14 @@ function PosterCard({ item, rank }: { item: HomePosterItem; rank?: number }) {
             }}
           >
             {rank}
+          </span>
+        ) : null}
+        {typeof item.progress === "number" ? (
+          <span
+            className="absolute right-2 top-2 rounded px-1.5 py-0.5 text-xs font-black leading-none"
+            style={{ background: "var(--success)", color: "#111113", boxShadow: "0 2px 8px rgba(0,0,0,0.45)" }}
+          >
+            {item.progress}%
           </span>
         ) : null}
       </div>

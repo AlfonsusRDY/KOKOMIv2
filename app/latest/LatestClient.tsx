@@ -2,14 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import type { PustakaItem } from "@/lib/api";
+import SourceBadge from "@/app/components/sourceBadge";
+import type { AggregatedPustakaItem } from "@/lib/aggregator";
 
-function normalizeItems(input: unknown): PustakaItem[] {
+function normalizeItems(input: unknown): AggregatedPustakaItem[] {
   if (!Array.isArray(input)) return [];
 
-  return input.filter((item): item is PustakaItem => {
+  return input.filter((item): item is AggregatedPustakaItem => {
     if (!item || typeof item !== "object") return false;
-    const record = item as Partial<PustakaItem>;
+    const record = item as Partial<AggregatedPustakaItem>;
     return typeof record.title === "string" && typeof record.detailUrl === "string";
   });
 }
@@ -18,7 +19,7 @@ function getSlug(detailUrl?: string) {
   return (detailUrl || "").replace("/detail-komik/", "").replace(/^\/+|\/+$/g, "");
 }
 
-function cleanChapter(comic: PustakaItem) {
+function cleanChapter(comic: AggregatedPustakaItem) {
   const raw = comic.latestChapter?.title || comic.firstChapter?.title || "";
   return raw.replace(comic.title || "", "").trim() || raw || "Ch. ?";
 }
@@ -28,7 +29,21 @@ function getUpdateTime(stats?: string) {
   return timeMatch ? timeMatch[1].replace(" lalu", "") : "";
 }
 
-async function fetchPustakaItems(apiPage: number): Promise<PustakaItem[]> {
+function relativeTimeMinutes(value?: string) {
+  const text = (value || "").toLowerCase().trim();
+  const amount = Number(text.match(/\d+/)?.[0] ?? 0);
+  if (!amount) return Number.POSITIVE_INFINITY;
+
+  if (text.includes("menit") || text.includes("minute") || text.includes("min")) return amount;
+  if (text.includes("jam") || text.includes("hour")) return amount * 60;
+  if (text.includes("hari") || text.includes("day")) return amount * 24 * 60;
+  if (text.includes("minggu") || text.includes("week")) return amount * 7 * 24 * 60;
+  if (text.includes("bulan") || text.includes("month")) return amount * 30 * 24 * 60;
+  if (text.includes("tahun") || text.includes("year")) return amount * 365 * 24 * 60;
+  return Number.POSITIVE_INFINITY;
+}
+
+async function fetchPustakaItems(apiPage: number): Promise<AggregatedPustakaItem[]> {
   try {
     const res = await fetch(`/api/pustaka?page=${apiPage}`);
     if (!res.ok) return [];
@@ -58,11 +73,31 @@ async function discoverLastPage(): Promise<number> {
   return hi;
 }
 
-function hotScore(item: PustakaItem) {
+function hotScore(item: AggregatedPustakaItem) {
   const stats = item.stats || "";
   const isColored = stats.toLowerCase().includes("berwarna") ? 100 : 0;
   const typeBoost = item.type?.toLowerCase().includes("manhwa") ? 20 : 0;
-  return isColored + typeBoost + item.title.length;
+  const sourceBoost = (item.sources?.length ?? 1) * 10;
+  const text = `${item.title} ${item.description} ${item.genre} ${item.type}`.toLowerCase();
+  const knownPopularBoost = [
+    "one piece",
+    "solo leveling",
+    "mercenary",
+    "apocalypse",
+    "cheonha",
+    "dragon",
+    "sakamoto",
+    "jujutsu",
+    "chainsaw",
+    "blue lock",
+  ].some((keyword) => text.includes(keyword))
+    ? 80
+    : 0;
+  return knownPopularBoost + isColored + typeBoost + sourceBoost + item.title.length;
+}
+
+function latestAge(item: AggregatedPustakaItem) {
+  return relativeTimeMinutes(getUpdateTime(item.stats));
 }
 
 export default function LatestClient({
@@ -70,19 +105,27 @@ export default function LatestClient({
   hideHeader,
   showModeTabs = false,
   sectionTitle,
+  initialMode = "new",
 }: {
-  initialData: PustakaItem[];
+  initialData: AggregatedPustakaItem[];
   hideHeader?: boolean;
   showModeTabs?: boolean;
   sectionTitle?: string;
+  initialMode?: "hot" | "new";
 }) {
-  const [items, setItems] = useState<PustakaItem[]>(() => normalizeItems(initialData));
+  const [items, setItems] = useState<AggregatedPustakaItem[]>(() => normalizeItems(initialData));
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [lastPage, setLastPage] = useState<number | null>(null);
-  const [mode, setMode] = useState<"hot" | "new">("new");
-  const displayItems = mode === "hot" ? [...items].sort((a, b) => hotScore(b) - hotScore(a)) : items;
+  const [mode, setMode] = useState<"hot" | "new">(initialMode);
+  const displayItems = mode === "hot"
+    ? [...items].sort((a, b) => {
+        const hotDiff = hotScore(b) - hotScore(a);
+        if (hotDiff !== 0) return hotDiff;
+        return latestAge(a) - latestAge(b);
+      })
+    : items;
 
   useEffect(() => {
     discoverLastPage().then((n) => setLastPage(n));
@@ -290,6 +333,13 @@ export default function LatestClient({
                 <h3 className="mt-2 line-clamp-2 text-center text-sm font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
                   {comic.title}
                 </h3>
+                {comic.sources?.length ? (
+                  <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
+                    {comic.sources.slice(0, 3).map((sourceId) => (
+                      <SourceBadge key={sourceId} sourceId={sourceId} short />
+                    ))}
+                  </div>
+                ) : null}
               </Link>
             );
           })}

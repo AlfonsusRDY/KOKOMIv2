@@ -23,6 +23,12 @@ export default function SearchBar({ compact = false, autoFocus = true, className
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
+    if (compact) {
+      const params = new URLSearchParams({ advanced: "1" });
+      if (q) params.set("q", q);
+      router.push(`/search?${params.toString()}`);
+      return;
+    }
     if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
   };
 

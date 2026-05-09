@@ -19,14 +19,21 @@ export default function HomeHistoryStrip() {
 
   const items = useMemo<HomePosterItem[]>(
     () =>
-      history.map((item) => ({
-        title: item.title,
-        slug: item.slug,
-        thumbnail: item.thumbnail,
-        chapter: `Ch.${item.lastChapter}`,
-        time: timeAgo(item.timestamp),
-        href: `/komik/${item.slug}/chapter/${item.lastChapter}`,
-      })),
+      history.map((item) => {
+        const page = item.lastImageIndex + 1;
+        const params = new URLSearchParams({ page: String(page) });
+        if (item.sourceId) params.set("source", item.sourceId);
+
+        return {
+          title: item.title,
+          slug: item.slug,
+          thumbnail: item.thumbnail,
+          chapter: `Ch.${item.lastChapter} / ${item.totalImages ? page : "?"}`,
+          time: timeAgo(item.timestamp),
+          href: `/komik/${item.slug}/chapter/${item.lastChapter}?${params.toString()}#page-${page}`,
+          progress: item.progress,
+        };
+      }),
     [history]
   );
 

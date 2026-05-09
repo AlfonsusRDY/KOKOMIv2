@@ -1,5 +1,5 @@
 import * as React from "react";
-import { getPustaka } from "@/lib/api";
+import { getAggregatedLatestItems } from "@/lib/aggregator";
 import LatestClient from "./LatestClient";
 
 export const metadata = {
@@ -11,10 +11,10 @@ export const revalidate = 60; // Cache for 60 seconds
 
 export default async function LatestPage() {
   const [data1, data2] = await Promise.all([
-    getPustaka(1).catch(() => null),
-    getPustaka(2).catch(() => null)
+    getAggregatedLatestItems(1).catch(() => []),
+    getAggregatedLatestItems(2).catch(() => []),
   ]);
-  const initialData = [...(data1?.results || []), ...(data2?.results || [])];
+  const initialData = [...data1, ...data2];
 
   return (
     <div className="min-h-screen">

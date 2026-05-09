@@ -8,6 +8,7 @@ import type { KomikItem, PustakaItem } from "@/lib/api";
 import HomeFollowedChapters from "./components/homeFollowedChapters";
 import HomeHistoryStrip from "./components/homeHistoryStrip";
 import HomePosterCarousel from "./components/homePosterCarousel";
+import OnboardingNoticeModal from "./components/onboardingNoticeModal";
 import type { HomePosterItem } from "./components/homePosterCarousel";
 import LatestClient from "./latest/LatestClient";
 
@@ -20,9 +21,28 @@ function cleanChapter(title?: string, comicTitle?: string) {
   return chapter || title || "Ch. ?";
 }
 
+function chapterNumberValue(chapter?: string) {
+  const match = (chapter || "").match(/(?:chapter|ch\.?)?\s*(\d+(?:\.\d+)?)/i);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}
+
 function updateTime(stats?: string) {
   const match = (stats || "").match(/\|\s*(.*?lalu)/i);
   return match ? match[1].replace(" lalu", "") : "";
+}
+
+function relativeTimeMinutes(value?: string) {
+  const text = (value || "").toLowerCase().trim();
+  const amount = Number(text.match(/\d+/)?.[0] ?? 0);
+  if (!amount) return Number.POSITIVE_INFINITY;
+
+  if (text.includes("menit") || text.includes("minute") || text.includes("min")) return amount;
+  if (text.includes("jam") || text.includes("hour")) return amount * 60;
+  if (text.includes("hari") || text.includes("day")) return amount * 24 * 60;
+  if (text.includes("minggu") || text.includes("week")) return amount * 7 * 24 * 60;
+  if (text.includes("bulan") || text.includes("month")) return amount * 30 * 24 * 60;
+  if (text.includes("tahun") || text.includes("year")) return amount * 365 * 24 * 60;
+  return Number.POSITIVE_INFINITY;
 }
 
 function fromPustaka(item: PustakaItem): HomePosterItem | null {
@@ -104,13 +124,24 @@ function popularItems(data: Awaited<ReturnType<typeof getPopularComics>> | null)
   return uniqueItems(items);
 }
 
-function fillToThirty(primary: HomePosterItem[], fallback: HomePosterItem[]) {
+function fillToThirty(primary: HomePosterItem[], fallback: HomePosterItem[] = []) {
   return uniqueItems([...primary, ...fallback]).slice(0, 30);
 }
 
 function excludeItems(items: HomePosterItem[], excluded: HomePosterItem[]) {
   const blocked = new Set(excluded.flatMap(identityKeys));
   return items.filter((item) => identityKeys(item).every((key) => !blocked.has(key)));
+}
+
+function recentlyAddedItems(items: HomePosterItem[]) {
+  const oneWeekMinutes = 7 * 24 * 60;
+
+  return uniqueItems(
+    items
+      .filter((item) => chapterNumberValue(item.chapter) <= 4)
+      .filter((item) => relativeTimeMinutes(item.time) <= oneWeekMinutes)
+      .sort((a, b) => relativeTimeMinutes(a.time) - relativeTimeMinutes(b.time))
+  ).slice(0, 30);
 }
 
 async function withDetailCovers(items: HomePosterItem[]) {
@@ -126,23 +157,6 @@ async function withDetailCovers(items: HomePosterItem[]) {
   );
 
   return uniqueItems(resolved);
-}
-
-function Notice() {
-  return (
-    <div
-      className="rounded-md border border-dashed px-5 py-5 text-center text-sm font-medium leading-7"
-      style={{
-        background: 'rgba(218,119,86,0.08)',
-        borderColor: 'var(--accent-border)',
-        color: '#f5ff3f',
-      }}
-    >
-      <p>- People can use Email or Username with Password to sign in to your account.</p>
-      <p>- This site is Beta so it may have bugs, please report to us if you found any. Thanks!</p>
-      <p>- Help us share the site to more people if you like it!</p>
-    </div>
-  );
 }
 
 function RecentlyAdded({ items }: { items: HomePosterItem[] }) {
@@ -214,22 +228,22 @@ async function HomeData() {
     const thumbnail = latestCoverBySlug.get(slug);
     return thumbnail ? { ...item, thumbnail } : item;
   });
-  const popularList = fillToThirty(popularBase, latestFallback);
-  const followsList = fillToThirty(excludeItems(latestFallback, popularList), []);
+  const popularList = fillToThirty(popularBase, excludeItems(latestFallback, latestWithCovers));
+  const followsList = fillToThirty(excludeItems(latestFallback, [...popularList, ...latestWithCovers]));
+  const recentlyAddedList = recentlyAddedItems(latestFallback);
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_438px]">
       <main className="min-w-0 space-y-16">
-        <Notice />
         <HomeFollowedChapters latestItems={latestWithCovers} />
         <HomeHistoryStrip />
         <HomePosterCarousel title="Most Recent Popular" items={popularList} ranked />
         <HomePosterCarousel title="Most Follows New Comics" items={followsList} ranked />
 
-        <LatestClient initialData={latestRawWithCovers} hideHeader showModeTabs sectionTitle="Latest Updates" />
+        <LatestClient initialData={latestRawWithCovers} hideHeader showModeTabs sectionTitle="Latest Updates" initialMode="hot" />
       </main>
 
-      <RecentlyAdded items={latestWithCovers} />
+      <RecentlyAdded items={recentlyAddedList} />
     </div>
   );
 }
@@ -271,6 +285,7 @@ function HomeSkeleton() {
 export default function HomePage() {
   return (
     <div className="min-h-screen">
+      <OnboardingNoticeModal />
       <div className="mx-auto max-w-[1728px] px-4 py-9 sm:px-8 lg:px-12">
         <Suspense fallback={<HomeSkeleton />}>
           <HomeData />

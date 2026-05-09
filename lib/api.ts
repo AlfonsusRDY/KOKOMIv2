@@ -1,18 +1,14 @@
 /**
- * Thin wrapper around the Komiku REST API
- * Base: https://api.komiku.vercel.app
+ * Komiku API — Primary Source Adapter
  *
- * Endpoints used:
- *   GET /komik-populer          → popular manga/manhwa/manhua
- *   GET /terbaru                → latest updates
- *   GET /detail-komik/:slug     → comic detail + chapter list
- *   GET /baca-chapter/:slug/:n  → chapter images
- *   GET /search?q=keyword       → search
+ * Wraps mangaverse-api.vercel.app (Komiku scraper).
+ * Kiryuu logic has been extracted to services/kiryuu.service.ts.
+ * Multi-source orchestration lives in lib/aggregator.ts.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://mangaverse-api.vercel.app";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://mangaverse-api.vercel.app';
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface KomikItem {
   title: string;
@@ -26,7 +22,6 @@ export interface KomikItem {
   apiChapterLink: string | null;
 }
 
-/** Shape returned by /terbaru-2 */
 export interface TerbaruItem {
   title: string;
   thumbnail: string;
@@ -51,6 +46,7 @@ export interface KomikPopulerResponse {
   manga: KomikSection;
   manhwa: KomikSection;
   manhua: KomikSection;
+  source?: string;
 }
 
 export interface ChapterDetailInfo {
@@ -115,35 +111,6 @@ export interface SearchResult {
   data: SearchItem[];
 }
 
-// ── Fetch helpers ─────────────────────────────────────────────────────────────
-
-async function apiFetch<T>(path: string, revalidate = 300): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    next: { revalidate },
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
-  return res.json() as Promise<T>;
-}
-
-// ── Public API ────────────────────────────────────────────────────────────────
-
-export async function getPopularComics() {
-  return apiFetch<KomikPopulerResponse>("/komik-populer", 300); // 5 min
-}
-
-export async function getLatestComics(): Promise<TerbaruItem[]> {
-  return apiFetch<TerbaruItem[]>("/terbaru-2", 60); // 1 min — changes often
-}
-
-export async function getComicDetail(slug: string) {
-  return apiFetch<DetailKomikResponse>(`/detail-komik/${slug}`, 600); // 10 min
-}
-
-export async function getChapterImages(slug: string, chapter: string) {
-  return apiFetch<BacaChapterResponse>(`/baca-chapter/${slug}/${chapter}`, 3600); // 1 hr — static
-}
-
 export interface PustakaItem {
   title: string;
   thumbnail: string;
@@ -161,12 +128,42 @@ export interface PustakaResponse {
   page: number;
   type: string;
   results: PustakaItem[];
+  source?: string;
 }
 
-export async function getPustaka(page: number = 1) {
-  return apiFetch<PustakaResponse>(`/pustaka/page/${page}`, 60); // 1 min cache
+// ─── Fetch ────────────────────────────────────────────────────────────────────
+
+async function apiFetch<T>(path: string, revalidate = 300): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    next: { revalidate },
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error(`Komiku API ${res.status}: ${path}`);
+  return res.json() as Promise<T>;
 }
 
-export async function searchComics(query: string) {
-  return apiFetch<SearchResult>(`/search?q=${encodeURIComponent(query)}`, 120); // 2 min
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+export async function getPopularComics(): Promise<KomikPopulerResponse> {
+  return apiFetch<KomikPopulerResponse>('/komik-populer', 300);
+}
+
+export async function getLatestComics(): Promise<TerbaruItem[]> {
+  return apiFetch<TerbaruItem[]>('/terbaru-2', 60);
+}
+
+export async function getComicDetail(slug: string): Promise<DetailKomikResponse> {
+  return apiFetch<DetailKomikResponse>(`/detail-komik/${slug}`, 600);
+}
+
+export async function getChapterImages(slug: string, chapter: string): Promise<BacaChapterResponse> {
+  return apiFetch<BacaChapterResponse>(`/baca-chapter/${slug}/${chapter}`, 3600);
+}
+
+export async function getPustaka(page = 1): Promise<PustakaResponse> {
+  return apiFetch<PustakaResponse>(`/pustaka/page/${page}`, 60);
+}
+
+export async function searchComics(query: string): Promise<SearchResult> {
+  return apiFetch<SearchResult>(`/search?q=${encodeURIComponent(query)}`, 120);
 }
